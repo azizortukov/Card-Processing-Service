@@ -63,16 +63,9 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public HttpEntity<?> blockCard(String eTag, UUID cardId) {
-        var cardOptional = cardRepository.findById(cardId);
-        if (cardOptional.isEmpty()) {
-            throw new NotFoundException("Card with such id not exists in processing.");
-        }
+        // Checks the ETag and checks if card in provided ID exists
+        Card card = checkEtag(eTag, cardId);
 
-        Card card = cardOptional.get();
-        String tag = generateETag(card);
-        if (!tag.equals(eTag)) {
-            throw new BadRequestException("ETag does not match.");
-        }
         if (!card.getStatus().equals(CardStatus.ACTIVE)) {
             throw new BadRequestException("Card is not active.");
         }
@@ -81,6 +74,32 @@ public class CardServiceImpl implements CardService {
         return ResponseEntity.noContent().build();
     }
 
+    @Override
+    public HttpEntity<?> activeCard(String eTag, UUID cardId) {
+        // Checks the ETag and checks if card in provided ID exists
+        Card card = checkEtag(eTag, cardId);
+
+        if (!card.getStatus().equals(CardStatus.BLOCKED)) {
+            throw new BadRequestException("Card is not blocked.");
+        }
+        card.setStatus(CardStatus.ACTIVE);
+        cardRepository.save(card);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    private Card checkEtag(String eTag, UUID cardId) {
+        var cardOptional = cardRepository.findById(cardId);
+        if (cardOptional.isEmpty()) {
+            throw new NotFoundException("Card with such id not exists in processing.");
+        }
+        Card card = cardOptional.get();
+        String tag = generateETag(card);
+        if (!tag.equals(eTag)) {
+            throw new BadRequestException("ETag does not match.");
+        }
+        return card;
+    }
 
 
     private String generateETag(Card card) {

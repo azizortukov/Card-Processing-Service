@@ -13,4 +13,6 @@ public interface CardService {
     HttpEntity<?> getCardById(UUID cardId);
 
     HttpEntity<?> blockCard(String eTag, UUID cardId);
+
+    HttpEntity<?> activeCard(String eTag, UUID cardId);
 }
