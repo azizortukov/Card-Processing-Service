@@ -5,9 +5,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.anas.card.entity.enums.CardStatus;
 import uz.anas.card.entity.enums.Currency;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -17,6 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Table(name = "card")
+@EntityListeners(AuditingEntityListener.class)
 public class Card {
 
     @Id
@@ -40,5 +45,13 @@ public class Card {
     @NotNull(message = "Currency cannot be null!")
     @Enumerated(EnumType.STRING)
     private Currency currency;
+
+    @CreatedDate
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime lastModifiedAt;
 
 }

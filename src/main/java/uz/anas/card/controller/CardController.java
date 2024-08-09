@@ -74,4 +74,27 @@ public class CardController {
         return cardService.getCardById(cardId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(description = "Block a card by its unique identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Card status changed to BLOCK",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID format is not valid, card is not active or ETag is wrong",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "User doesn't have privilege to access this resource",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Card not found with provided ID",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @PostMapping("/{cardId}/block")
+    public HttpEntity<?> blockCard(@RequestHeader("If-Match") String eTag, @PathVariable UUID cardId) {
+        return cardService.blockCard(eTag, cardId);
+    }
+
 }

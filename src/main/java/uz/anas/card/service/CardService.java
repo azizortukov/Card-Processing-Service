@@ -11,4 +11,6 @@ public interface CardService {
     HttpEntity<?> createNewCard(UUID idempotencyKey, CreateCardDto cardDto);
 
     HttpEntity<?> getCardById(UUID cardId);
+
+    HttpEntity<?> blockCard(String eTag, UUID cardId);
 }
