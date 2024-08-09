@@ -15,7 +15,7 @@ import uz.anas.card.service.JwtService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication API", description = "(For Sign Up, Login, sending verification code)")
+@Tag(name = "Authentication API", description = "(For getting access token)")
 public class AuthController {
 
     private final JwtService jwtService;

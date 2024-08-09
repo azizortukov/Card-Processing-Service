@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import uz.anas.card.entity.Card;
 import uz.anas.card.entity.IdempotencyRecord;
 import uz.anas.card.exceptions.BadRequestException;
+import uz.anas.card.exceptions.NotFoundException;
 import uz.anas.card.model.dto.CreateCardDto;
 import uz.anas.card.model.mapper.CardMapper;
 import uz.anas.card.model.mapper.CardResponseMapper;
@@ -15,7 +16,6 @@ import uz.anas.card.repo.CardRepository;
 import uz.anas.card.repo.IdempotencyRecordRepository;
 import uz.anas.card.repo.UserRepository;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,7 +33,7 @@ public class CardServiceImpl implements CardService {
     public HttpEntity<?> createNewCard(UUID idempotencyKey, CreateCardDto cardDto) {
         var record = idempotencyRecordRepository.findById(idempotencyKey);
         if (record.isPresent()) {
-            Optional<Card> cardById = cardRepository.findById(record.get().getCardId());
+            var cardById = cardRepository.findById(record.get().getCardId());
             if (cardById.isPresent()) {
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(cardResponseMapper.toDto(cardById.get()));
@@ -47,5 +47,14 @@ public class CardServiceImpl implements CardService {
         idempotencyRecordRepository.save(new IdempotencyRecord(idempotencyKey, savedCard.getId()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(cardResponseMapper.toDto(savedCard));
+    }
+
+    @Override
+    public HttpEntity<?> getCardById(UUID cardId) {
+        var cardById = cardRepository.findById(cardId);
+        if (cardById.isEmpty()) {
+            throw new NotFoundException("Card with such id not exists in processing.");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(cardResponseMapper.toDto(cardById.get()));
     }
 }

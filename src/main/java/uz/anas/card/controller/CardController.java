@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -20,13 +21,13 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/cards")
+@Tag(name = "Cards API", description = "(CRUD operations and search mechanism)")
 public class CardController {
 
     private final CardService cardService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(tags = "Card creation API",
-            description = "Fetches a paginated and sorted list of tasks for a user identified by the provided ID. Supports pagination and sorting parameters")
+    @Operation(description = "Creates new card with given characteristics")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -46,9 +47,31 @@ public class CardController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping
-    public HttpEntity<?> saveCard(@RequestHeader("Idempotency-Key") UUID idempotencyKey,
-                                  @RequestBody @Valid CreateCardDto cardDto) {
+    public HttpEntity<?> saveCard(@RequestHeader("Idempotency-Key") UUID idempotencyKey, @RequestBody @Valid CreateCardDto cardDto) {
         return cardService.createNewCard(idempotencyKey, cardDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(description = "Retrieve a card by its unique identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Card found and returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID Format is not valid",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "User doesn't have privilege to access this resource",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Card not found with provided ID",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @GetMapping("/{cardId}")
+    public HttpEntity<?> getCard(@PathVariable UUID cardId) {
+        return cardService.getCardById(cardId);
     }
 
 }

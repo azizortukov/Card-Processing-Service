@@ -9,4 +9,6 @@ import java.util.UUID;
 @Service
 public interface CardService {
     HttpEntity<?> createNewCard(UUID idempotencyKey, CreateCardDto cardDto);
+
+    HttpEntity<?> getCardById(UUID cardId);
 }
