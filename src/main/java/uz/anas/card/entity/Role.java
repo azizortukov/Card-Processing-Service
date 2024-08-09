@@ -3,6 +3,7 @@ package uz.anas.card.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
 import uz.anas.card.entity.enums.RoleName;
 
 
@@ -13,7 +14,7 @@ import uz.anas.card.entity.enums.RoleName;
 @NoArgsConstructor
 @Builder
 @Table(name = "roles")
-public class Role {
+public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -22,4 +23,8 @@ public class Role {
     @Enumerated(EnumType.STRING)
     private RoleName name;
 
+    @Override
+    public String getAuthority() {
+        return name.name();
+    }
 }
