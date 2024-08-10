@@ -8,13 +8,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import uz.anas.card.entity.enums.Currency;
+import uz.anas.card.entity.enums.TransactionType;
 import uz.anas.card.exceptions.ExceptionResponse;
 import uz.anas.card.model.dto.*;
+import uz.anas.card.model.projection.TransactionProjection;
 import uz.anas.card.service.CardService;
-
+import uz.anas.card.service.TransactionService;
 import java.util.UUID;
 
 @PreAuthorize("hasRole('ADMIN')")
@@ -25,6 +30,7 @@ import java.util.UUID;
 public class CardController {
 
     private final CardService cardService;
+    private final TransactionService transactionService;
 
     @Operation(description = "Creates new card with given characteristics")
     @ApiResponses(value = {
@@ -129,7 +135,7 @@ public class CardController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Money successfully withdrawn",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DebitResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "ID format is wrong, card is not active, insufficient fund or ETag format is wrong",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
@@ -154,7 +160,7 @@ public class CardController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Money successfully deposited",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreditResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "ID format is wrong, card is not active or ETag format is wrong",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
@@ -172,6 +178,34 @@ public class CardController {
             @PathVariable UUID cardId,
             @RequestBody @Valid CreditRequestDTO creditRequestDTO) {
         return cardService.receiveMoney(idempotencyKey, cardId, creditRequestDTO);
+    }
+
+    @Operation(description = "Getting transaction history by params")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Transactions retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = TransactionProjection.class))),
+            @ApiResponse(responseCode = "400", description = "Card ID format is wrong",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "User doesn't have privilege to access this resource",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @GetMapping("/{cardId}/transactions")
+    public HttpEntity<?> getTransactions(
+            @PathVariable UUID cardId,
+            @RequestParam(name = "type", required = false) TransactionType type,
+            @RequestParam(name = "transaction_id", required = false) UUID transactionId,
+            @RequestParam(name = "external_id", required = false) String externalId,
+            @RequestParam(name = "currency", required = false) Currency currency,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        Page<?> transactions = transactionService.getTransactions(cardId, type, transactionId, externalId, currency, page, size);
+        return ResponseEntity.ok(transactions);
     }
 
 }
