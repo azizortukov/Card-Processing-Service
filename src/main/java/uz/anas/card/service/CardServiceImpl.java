@@ -12,9 +12,9 @@ import uz.anas.card.entity.enums.CardStatus;
 import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.exceptions.BadRequestException;
 import uz.anas.card.exceptions.NotFoundException;
-import uz.anas.card.model.dto.CardRequestDTO;
-import uz.anas.card.model.dto.CreditRequestDTO;
-import uz.anas.card.model.dto.DebitRequestDTO;
+import uz.anas.card.model.dto.request.CardRequestDTO;
+import uz.anas.card.model.dto.request.CreditRequestDTO;
+import uz.anas.card.model.dto.request.DebitRequestDTO;
 import uz.anas.card.model.mapper.CardMapper;
 import uz.anas.card.model.mapper.CardResponseMapper;
 import uz.anas.card.model.mapper.TransactionMapper;
@@ -57,10 +57,10 @@ public class CardServiceImpl implements CardService {
             throw new NotFoundException("User with provided id is not found");
         }
 
-        Card savedCard = cardRepository.save(cardMapper.toEntity(cardDto, userRepository));
-        idempotencyRecordRepository.save(new IdempotencyRecord(idempotencyKey, savedCard.getId()));
+        Card card = cardRepository.save(cardMapper.toEntity(cardDto, userRepository));
+        idempotencyRecordRepository.save(new IdempotencyRecord(idempotencyKey, card.getId()));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardResponseMapper.toDto(savedCard));
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardResponseMapper.toDto(card));
     }
 
     @Override

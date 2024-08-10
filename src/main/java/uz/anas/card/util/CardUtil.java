@@ -15,7 +15,7 @@ import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.exceptions.BadRequestException;
 import uz.anas.card.exceptions.InternalServerException;
 import uz.anas.card.exceptions.NotFoundException;
-import uz.anas.card.model.dto.DebitRequestDTO;
+import uz.anas.card.model.dto.request.DebitRequestDTO;
 import uz.anas.card.model.dto.CurrencyRateDTO;
 import uz.anas.card.repo.CardRepository;
 

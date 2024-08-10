@@ -2,14 +2,15 @@ package uz.anas.card.service;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
-import uz.anas.card.model.dto.CardRequestDTO;
-import uz.anas.card.model.dto.CreditRequestDTO;
-import uz.anas.card.model.dto.DebitRequestDTO;
+import uz.anas.card.model.dto.request.CardRequestDTO;
+import uz.anas.card.model.dto.request.CreditRequestDTO;
+import uz.anas.card.model.dto.request.DebitRequestDTO;
 
 import java.util.UUID;
 
 @Service
 public interface CardService {
+
     HttpEntity<?> createNewCard(UUID idempotencyKey, CardRequestDTO cardDto);
 
     HttpEntity<?> getCardById(UUID cardId);
@@ -21,4 +22,5 @@ public interface CardService {
     HttpEntity<?> sendMoney(UUID idempotencyKey, UUID cardId, DebitRequestDTO debitRequestDTO);
 
     HttpEntity<?> receiveMoney(UUID idempotencyKey, UUID cardId, CreditRequestDTO creditRequestDTO);
+
 }

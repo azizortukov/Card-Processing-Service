@@ -9,8 +9,8 @@ import uz.anas.card.entity.Card;
 import uz.anas.card.entity.Transaction;
 import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.entity.enums.TransactionType;
-import uz.anas.card.model.dto.CreditRequestDTO;
-import uz.anas.card.model.dto.DebitRequestDTO;
+import uz.anas.card.model.dto.request.CreditRequestDTO;
+import uz.anas.card.model.dto.request.DebitRequestDTO;
 import uz.anas.card.repo.TransactionRepository;
 import uz.anas.card.util.CardUtil;
 

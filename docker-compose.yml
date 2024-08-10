@@ -1,0 +1,23 @@
+services:
+
+  card-processing-service:
+    image: anasortukov/card-processing-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    container_name: card-processing-service
+
+  postgres-db:
+    image: postgres
+    environment:
+      POSTGRES_DB: card_processing_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root123
+    ports:
+      - "5434:5432"
+
+  redis-db:
+    image: redis
+    ports:
+      - "6400:6379"

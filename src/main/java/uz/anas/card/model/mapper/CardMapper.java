@@ -4,7 +4,7 @@ import org.mapstruct.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import uz.anas.card.entity.Card;
 import uz.anas.card.entity.User;
-import uz.anas.card.model.dto.CardRequestDTO;
+import uz.anas.card.model.dto.request.CardRequestDTO;
 import uz.anas.card.repo.UserRepository;
 
 

@@ -2,7 +2,7 @@ package uz.anas.card.model.mapper;
 
 import org.mapstruct.*;
 import uz.anas.card.entity.Card;
-import uz.anas.card.model.dto.CardResponseDTO;
+import uz.anas.card.model.dto.response.CardResponseDTO;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CardResponseMapper {

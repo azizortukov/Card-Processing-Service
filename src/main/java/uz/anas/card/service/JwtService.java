@@ -6,16 +6,10 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import uz.anas.card.model.dto.LoginDTO;
 
 import javax.crypto.SecretKey;
 import java.util.Arrays;
@@ -27,7 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final AuthenticationManager authenticationManager;
     @Value("${jwt.secretKey}")
     private String secretKey;
 
@@ -53,7 +46,6 @@ public class JwtService {
             getClaims(token);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -64,18 +56,6 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    public ResponseEntity<?> checkLoginDetails(LoginDTO loginDto) {
-        try {
-            var auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
-
-            return ResponseEntity.ok(genToken((UserDetails) auth.getPrincipal()));
-        } catch (AuthenticationException e) {
-            e.printStackTrace();
-            throw new UsernameNotFoundException("Email or password is incorrect. Please try again!");
-        }
     }
 
     public String getEmail(String token) {

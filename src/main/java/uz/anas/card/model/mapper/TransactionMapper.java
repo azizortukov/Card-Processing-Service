@@ -2,8 +2,8 @@ package uz.anas.card.model.mapper;
 
 import org.mapstruct.*;
 import uz.anas.card.entity.Transaction;
-import uz.anas.card.model.dto.CreditResponseDTO;
-import uz.anas.card.model.dto.DebitResponseDTO;
+import uz.anas.card.model.dto.response.CreditResponseDTO;
+import uz.anas.card.model.dto.response.DebitResponseDTO;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TransactionMapper {

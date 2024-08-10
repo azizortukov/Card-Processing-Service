@@ -16,10 +16,16 @@ import org.springframework.web.bind.annotation.*;
 import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.entity.enums.TransactionType;
 import uz.anas.card.exceptions.ExceptionResponse;
-import uz.anas.card.model.dto.*;
+import uz.anas.card.model.dto.request.CardRequestDTO;
+import uz.anas.card.model.dto.request.CreditRequestDTO;
+import uz.anas.card.model.dto.request.DebitRequestDTO;
+import uz.anas.card.model.dto.response.CardResponseDTO;
+import uz.anas.card.model.dto.response.CreditResponseDTO;
+import uz.anas.card.model.dto.response.DebitResponseDTO;
 import uz.anas.card.model.projection.TransactionProjection;
 import uz.anas.card.service.CardService;
 import uz.anas.card.service.TransactionService;
+
 import java.util.UUID;
 
 @PreAuthorize("hasRole('ADMIN')")
@@ -85,9 +91,7 @@ public class CardController {
     @Operation(description = "Block a card by its unique identifier.")
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "204",
-                    description = "Card status changed to BLOCKED",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDTO.class))),
+                    responseCode = "204", description = "Card status changed to BLOCKED"),
             @ApiResponse(responseCode = "400", description = "ID format is wrong, card is not active or ETag format is wrong",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
@@ -109,9 +113,7 @@ public class CardController {
     @Operation(description = "Re active a card by its unique identifier.")
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "204",
-                    description = "Card status changed to ACTIVE",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DebitResponseDTO.class))),
+                    responseCode = "204", description = "Card status changed to ACTIVE"),
             @ApiResponse(responseCode = "400", description = "ID format is wrong, missing param or card is not BLOCKED",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",

@@ -44,7 +44,7 @@ public class Runner implements CommandLineRunner {
                     .fullName("John")
                     .build());
             userRepository.save(User.builder()
-                    .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
+                    .roles(List.of(roleRepository.findByName(RoleName.ROLE_CLIENT)))
                     .email("client@gmail.com")
                     .password(
                             passwordEncoder.encode("12345678")
