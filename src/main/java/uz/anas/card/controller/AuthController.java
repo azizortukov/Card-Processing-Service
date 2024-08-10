@@ -21,7 +21,7 @@ import uz.anas.card.service.UserService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication API", description = "(For getting access token)")
 public class AuthController {
 
