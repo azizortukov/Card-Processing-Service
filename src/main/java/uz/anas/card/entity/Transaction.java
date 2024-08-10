@@ -17,17 +17,33 @@ import java.util.UUID;
 @Builder
 @Table(name = "transaction")
 public class Transaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID id;
+
+    @NotNull(message = "External ID cannot be null!")
+    private String externalId;
+
+    @JoinColumn(name = "card_id")
+    @ManyToOne
+    private Card card;
+
+    @NotNull(message = "Balance should be provided")
+    private Long afterBalance;
+
     @Positive(message = "Transaction cannot be negative!")
     private Long amount;
+
     @NotNull(message = "Currency cannot be null!")
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private Currency currency;
+
     @NotNull(message = "Purpose cannot be null!")
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private TransactionPurpose purpose;
+
+    private Long exchangeRate;
 
 }

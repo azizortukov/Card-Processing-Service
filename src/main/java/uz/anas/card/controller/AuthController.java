@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uz.anas.card.model.dto.UserDto;
+import uz.anas.card.model.dto.LoginDto;
 import uz.anas.card.service.JwtService;
 
 @RestController
@@ -27,7 +27,7 @@ public class AuthController {
             200(success) with access & refresh tokens, 401(unauthorized) if entered user details are wrong
             """)
     @PostMapping("/login")
-    public HttpEntity<?> login(@RequestBody @Valid UserDto userDto) {
-        return jwtService.checkLoginDetails(userDto);
+    public HttpEntity<?> login(@RequestBody @Valid LoginDto loginDto) {
+        return jwtService.checkLoginDetails(loginDto);
     }
 }

@@ -9,3 +9,10 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
+    data:
+        redis:
+            host: localhost
+            port: 6379
+
+jwt:
+    secretKey: your_64_length_char_string_for_jwt_key

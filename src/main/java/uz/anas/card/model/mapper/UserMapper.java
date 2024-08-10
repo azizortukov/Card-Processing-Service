@@ -2,14 +2,14 @@ package uz.anas.card.model.mapper;
 
 import org.mapstruct.*;
 import uz.anas.card.entity.User;
-import uz.anas.card.model.dto.UserDto;
+import uz.anas.card.model.dto.LoginDto;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
-    User toEntity(UserDto userDto);
+    User toEntity(LoginDto loginDto);
 
-    UserDto toDto(User user);
+    LoginDto toDto(User user);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    User partialUpdate(UserDto userDto, @MappingTarget User user);
+    User partialUpdate(LoginDto loginDto, @MappingTarget User user);
 }

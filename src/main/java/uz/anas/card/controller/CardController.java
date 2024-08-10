@@ -12,12 +12,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.anas.card.exceptions.ExceptionResponse;
-import uz.anas.card.model.dto.CardResponseDto;
+import uz.anas.card.model.dto.ResponseCardDto;
 import uz.anas.card.model.dto.CreateCardDto;
+import uz.anas.card.model.dto.CreateTransactionDto;
+import uz.anas.card.model.dto.ResponseTransactionDto;
 import uz.anas.card.service.CardService;
 
 import java.util.UUID;
 
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/cards")
@@ -26,38 +29,40 @@ public class CardController {
 
     private final CardService cardService;
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(description = "Creates new card with given characteristics")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
                     description = "Card created successfully.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseCardDto.class))),
             @ApiResponse(
                     responseCode = "200",
                     description = "Card with this Idempotency-Key has already been created before. API returns current card data.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseCardDto.class))),
             @ApiResponse(responseCode = "400", description = "Missing field, invalid data or card limit is exceeded",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "403", description = "User doesn't have privilege to access this resource",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User cannot be found by provided ID",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping
-    public HttpEntity<?> saveCard(@RequestHeader("Idempotency-Key") UUID idempotencyKey, @RequestBody @Valid CreateCardDto cardDto) {
+    public HttpEntity<?> saveCard(
+            @RequestHeader("Idempotency-Key") UUID idempotencyKey,
+            @RequestBody @Valid CreateCardDto cardDto) {
         return cardService.createNewCard(idempotencyKey, cardDto);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(description = "Retrieve a card by its unique identifier.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Card found and returned",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseCardDto.class))),
             @ApiResponse(responseCode = "400", description = "ID Format is not valid",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
@@ -74,13 +79,12 @@ public class CardController {
         return cardService.getCardById(cardId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(description = "Block a card by its unique identifier.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Card status changed to BLOCK",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
+                    description = "Card status changed to BLOCKED",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseCardDto.class))),
             @ApiResponse(responseCode = "400", description = "ID format is not valid, card is not active or ETag is wrong",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
@@ -93,18 +97,19 @@ public class CardController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping("/{cardId}/block")
-    public HttpEntity<?> blockCard(@RequestHeader("If-Match") String eTag, @PathVariable UUID cardId) {
+    public HttpEntity<?> blockCard(
+            @RequestHeader("If-Match") String eTag,
+            @PathVariable UUID cardId) {
         return cardService.blockCard(eTag, cardId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(description = "Active a card by its unique identifier.")
+    @Operation(description = "Re active a card by its unique identifier.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
                     description = "Card status changed to ACTIVE",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "ID format is not valid, card is not blocked or ETag is wrong",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseTransactionDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID format is not valid, missing param or insufficient funds",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
@@ -116,8 +121,35 @@ public class CardController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping("/{cardId}/unblock")
-    public HttpEntity<?> activeCard(@RequestHeader("If-Match") String eTag, @PathVariable UUID cardId) {
+    public HttpEntity<?> activeCard(
+            @RequestHeader("If-Match") String eTag,
+            @PathVariable UUID cardId) {
         return cardService.activeCard(eTag, cardId);
+    }
+
+    @Operation(description = "Withdraw a fund by its unique identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Money successfully withdrawn",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseCardDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID format is not valid, card is not blocked or ETag is wrong",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Request sent without authorization/token",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "User doesn't have privilege to access this resource",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Card not found with provided ID",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @PostMapping("/{cardId}/debit")
+    public HttpEntity<?> debitCard(
+            @RequestHeader("Idempotency-Key") UUID idempotencyKey,
+            @PathVariable UUID cardId,
+            @RequestBody @Valid CreateTransactionDto createTransactionDto) {
+        return cardService.sendMoney(idempotencyKey, cardId, createTransactionDto);
     }
 
 }

@@ -1,6 +1,7 @@
 package uz.anas.card.exceptions.handler;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import uz.anas.card.exceptions.ExceptionResponse;
 import uz.anas.card.exceptions.NotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -48,12 +50,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ExceptionResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
-        String errorMessage = String.format("Invalid value '%s' for parameter '%s'", e.getValue(), e.getName());
+        String errorMessage = String.format("Validation failed: '%s' for parameter '%s'", e.getValue(), e.getName());
         ExceptionResponse response = new ExceptionResponse(
                 HttpStatus.BAD_REQUEST,
                 errorMessage,
                 LocalDateTime.now()
         );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ExceptionResponse> handleConstraintViolation(ConstraintViolationException e) {
+        String errorMessage = e.getConstraintViolations().stream()
+                .map(violation -> String.format("'%s' : %s", violation.getPropertyPath(), violation.getMessage()))
+                .collect(Collectors.joining(", "));
+
+        ExceptionResponse response = new ExceptionResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed: " + errorMessage,
+                LocalDateTime.now()
+        );
+
+        // Return the response entity
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
