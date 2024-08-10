@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * DTO for {@link uz.anas.card.entity.Card}
  */
-public record ResponseCardDto(
+public record CardResponseDTO(
         UUID id, Long userId,
         @NotNull(message = "Card status cannot be null!") CardStatus status,
         @NotNull(message = "Balance cannot be null!") @PositiveOrZero(message = "Balance cannot be negative!") Long balance,

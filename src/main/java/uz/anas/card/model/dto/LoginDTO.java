@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * DTO for {@link User}
  */
-public record LoginDto(
+public record LoginDTO(
         @NotBlank(message = "Email cannot be blank!")
         @Email(message = "Please, provide email!")
         String email,

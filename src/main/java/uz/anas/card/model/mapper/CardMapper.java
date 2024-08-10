@@ -4,7 +4,7 @@ import org.mapstruct.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import uz.anas.card.entity.Card;
 import uz.anas.card.entity.User;
-import uz.anas.card.model.dto.CreateCardDto;
+import uz.anas.card.model.dto.CardRequestDTO;
 import uz.anas.card.repo.UserRepository;
 
 
@@ -12,12 +12,12 @@ import uz.anas.card.repo.UserRepository;
 public interface CardMapper {
 
     @Mapping(target = "user", source = "userId")
-    Card toEntity(CreateCardDto createCardDto, @Context UserRepository userRepository);
+    Card toEntity(CardRequestDTO cardRequestDTO, @Context UserRepository userRepository);
 
-    CreateCardDto toDto(Card card);
+    CardRequestDTO toDto(Card card);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Card partialUpdate(CreateCardDto createCardDto, @MappingTarget Card card);
+    Card partialUpdate(CardRequestDTO cardRequestDTO, @MappingTarget Card card);
 
     default User mapUser(Long userId, @Context UserRepository userRepository) {
         return userRepository.findById(userId)

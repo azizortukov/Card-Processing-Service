@@ -12,7 +12,7 @@ import java.io.Serializable;
 /**
  * DTO for {@link uz.anas.card.entity.Card}
  */
-public record CreateCardDto(
+public record CardRequestDTO(
 
         @JsonProperty("user_id")
         @NotNull(message = "User id cannot be null")
@@ -26,7 +26,7 @@ public record CreateCardDto(
 
         Currency currency) implements Serializable {
 
-    public CreateCardDto(Long userId, CardStatus status, Long balance, Currency currency) {
+    public CardRequestDTO(Long userId, CardStatus status, Long balance, Currency currency) {
         this.userId = userId;
         this.status = status != null ? status : CardStatus.ACTIVE;
         this.balance = balance != null ? balance : 0;

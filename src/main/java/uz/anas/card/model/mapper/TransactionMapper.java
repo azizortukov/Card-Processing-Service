@@ -2,17 +2,21 @@ package uz.anas.card.model.mapper;
 
 import org.mapstruct.*;
 import uz.anas.card.entity.Transaction;
-import uz.anas.card.model.dto.ResponseTransactionDto;
+import uz.anas.card.model.dto.CreditResponseDTO;
+import uz.anas.card.model.dto.DebitResponseDTO;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TransactionMapper {
     @Mapping(source = "cardId", target = "card.id")
-    Transaction toEntity(ResponseTransactionDto responseTransactionDto);
+    Transaction toEntity(DebitResponseDTO debitResponseDTO);
 
     @Mapping(source = "card.id", target = "cardId")
-    ResponseTransactionDto toDto(Transaction transaction);
+    DebitResponseDTO toDebitResponseDto(Transaction transaction);
+
+    @Mapping(source = "card.id", target = "cardId")
+    CreditResponseDTO toCreditResponseDto(Transaction transaction);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "cardId", target = "card.id")
-    Transaction partialUpdate(ResponseTransactionDto responseTransactionDto, @MappingTarget Transaction transaction);
+    Transaction partialUpdate(DebitResponseDTO debitResponseDTO, @MappingTarget Transaction transaction);
 }

@@ -1,12 +1,15 @@
 package uz.anas.card.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.entity.enums.TransactionPurpose;
+import uz.anas.card.entity.enums.TransactionType;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -33,17 +36,27 @@ public class Transaction {
     @NotNull(message = "Balance should be provided")
     private Long afterBalance;
 
-    @Positive(message = "Transaction cannot be negative!")
+    @Positive(message = "Transaction cannot be negative or zero!")
     private Long amount;
 
     @NotNull(message = "Currency cannot be null!")
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    @NotNull(message = "Purpose cannot be null!")
+    @NotNull(message = "Transaction type cannot be null!")
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
+
     @Enumerated(EnumType.STRING)
     private TransactionPurpose purpose;
 
     private Long exchangeRate;
+
+    @PrePersist
+    void prePersist() {
+        if (this.transactionType.equals(TransactionType.DEBIT) && this.purpose == null) {
+            throw new ConstraintViolationException("Purpose cannot be null!", Set.of());
+        }
+    }
 
 }

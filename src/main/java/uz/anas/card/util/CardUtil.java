@@ -15,8 +15,8 @@ import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.exceptions.BadRequestException;
 import uz.anas.card.exceptions.InternalServerException;
 import uz.anas.card.exceptions.NotFoundException;
-import uz.anas.card.model.dto.CreateTransactionDto;
-import uz.anas.card.model.dto.CurrencyRateDto;
+import uz.anas.card.model.dto.DebitRequestDTO;
+import uz.anas.card.model.dto.CurrencyRateDTO;
 import uz.anas.card.repo.CardRepository;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class CardUtil {
 
         try {
             if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                List<CurrencyRateDto> rates = objectMapper.readValue(jsonResponse, new TypeReference<>() {
+                List<CurrencyRateDTO> rates = objectMapper.readValue(jsonResponse, new TypeReference<>() {
                 });
                 if (rates.isEmpty()) {
                     throw new InternalServerException("The currency could not be loaded.");
@@ -57,7 +57,7 @@ public class CardUtil {
     @Scheduled(cron = "0 0 1 * * *")
     public void clearCache() {}
 
-    public long checkBalanceWithCurrencyRate(Card card, CreateTransactionDto transactionDto, long currencyRate) {
+    public long sumWithCurrencyRate(Card card, DebitRequestDTO transactionDto, long currencyRate) {
         long sum;
         if (transactionDto.currency().equals(Currency.USD)) {
             sum = transactionDto.amount() * currencyRate;

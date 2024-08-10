@@ -2,4 +2,4 @@ package uz.anas.card.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record CurrencyRateDto(@JsonProperty("Rate") double rate) {}
+public record CurrencyRateDTO(@JsonProperty("Rate") double rate) {}

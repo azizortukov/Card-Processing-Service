@@ -12,12 +12,12 @@ import java.util.UUID;
 /**
  * DTO for {@link uz.anas.card.entity.Transaction}
  */
-public record ResponseTransactionDto(
+public record DebitResponseDTO(
         @JsonProperty("transaction_id") UUID id,
         @NotNull(message = "External ID cannot be null!") @JsonProperty("external_id") String externalId,
         @NotNull(message = "Card ID cannot be null") @JsonProperty("card_id") UUID cardId,
         @NotNull(message = "Balance should be provided") @JsonProperty("after_balance") Long afterBalance,
-        @Positive(message = "Transaction cannot be negative!") Long amount,
+        @Positive(message = "Transaction cannot be negative or zero!") Long amount,
         @NotNull(message = "Currency cannot be null!") Currency currency,
         @NotNull(message = "Purpose cannot be null!") TransactionPurpose purpose,
         Long exchangeRate) implements Serializable {

@@ -15,7 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import uz.anas.card.model.dto.LoginDto;
+import uz.anas.card.model.dto.LoginDTO;
 
 import javax.crypto.SecretKey;
 import java.util.Arrays;
@@ -66,7 +66,7 @@ public class JwtService {
                 .getPayload();
     }
 
-    public ResponseEntity<?> checkLoginDetails(LoginDto loginDto) {
+    public ResponseEntity<?> checkLoginDetails(LoginDTO loginDto) {
         try {
             var auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));

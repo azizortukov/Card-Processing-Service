@@ -9,10 +9,12 @@ import uz.anas.card.entity.Card;
 import uz.anas.card.entity.IdempotencyRecord;
 import uz.anas.card.entity.Transaction;
 import uz.anas.card.entity.enums.CardStatus;
+import uz.anas.card.entity.enums.Currency;
 import uz.anas.card.exceptions.BadRequestException;
 import uz.anas.card.exceptions.NotFoundException;
-import uz.anas.card.model.dto.CreateCardDto;
-import uz.anas.card.model.dto.CreateTransactionDto;
+import uz.anas.card.model.dto.CardRequestDTO;
+import uz.anas.card.model.dto.CreditRequestDTO;
+import uz.anas.card.model.dto.DebitRequestDTO;
 import uz.anas.card.model.mapper.CardMapper;
 import uz.anas.card.model.mapper.CardResponseMapper;
 import uz.anas.card.model.mapper.TransactionMapper;
@@ -40,7 +42,7 @@ public class CardServiceImpl implements CardService {
     private final TransactionService transactionService;
 
     @Override
-    public HttpEntity<?> createNewCard(UUID idempotencyKey, CreateCardDto cardDto) {
+    public HttpEntity<?> createNewCard(UUID idempotencyKey, CardRequestDTO cardDto) {
         var recordOptional = idempotencyRecordRepository.findById(idempotencyKey);
         if (recordOptional.isPresent()) {
             var card = cardUtil.checkCardExistence(recordOptional.get().getCardId());
@@ -74,9 +76,7 @@ public class CardServiceImpl implements CardService {
         // Checks the ETag and checks if card in provided ID exists
         Card card = checkEtag(eTag, cardId);
 
-        if (!card.getStatus().equals(CardStatus.ACTIVE)) {
-            throw new BadRequestException("Card is not active.");
-        }
+        checkCardStatus(card);
         card.setStatus(CardStatus.BLOCKED);
         cardRepository.save(card);
         return ResponseEntity.noContent().build();
@@ -96,41 +96,80 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public HttpEntity<?> sendMoney(UUID idempotencyKey, UUID cardId, CreateTransactionDto transactionDto) {
+    public HttpEntity<?> sendMoney(UUID idempotencyKey, UUID cardId, DebitRequestDTO debitDTO) {
         var recordOptional = idempotencyRecordRepository.findById(idempotencyKey);
         if (recordOptional.isPresent()) {
             var transactionOptional = transactionRepository.findById(recordOptional.get().getTransactionId());
             if (transactionOptional.isPresent()) {
-                var dto = transactionMapper.toDto(transactionOptional.get());
+                var dto = transactionMapper.toDebitResponseDto(transactionOptional.get());
                 return ResponseEntity.ok(dto);
             }
         }
         Card card = cardUtil.checkCardExistence(cardId);
-        Transaction transaction = checkBalanceAndWithdraw(card, transactionDto);
+        Transaction transaction = checkBalanceAndWithdraw(card, debitDTO);
         idempotencyRecordRepository.save(new IdempotencyRecord(idempotencyKey, cardId, transaction.getId()));
-        return ResponseEntity.ok(transactionMapper.toDto(transaction));
+        return ResponseEntity.ok(transactionMapper.toDebitResponseDto(transaction));
     }
 
-    public Transaction checkBalanceAndWithdraw(Card card, CreateTransactionDto transactionDto) {
+    @Override
+    public HttpEntity<?> receiveMoney(UUID idempotencyKey, UUID cardId, CreditRequestDTO creditDTO) {
+        var recordOptional = idempotencyRecordRepository.findById(idempotencyKey);
+        if (recordOptional.isPresent()) {
+            var transactionOptional = transactionRepository.findById(recordOptional.get().getTransactionId());
+            if (transactionOptional.isPresent()) {
+                var dto = transactionMapper.toCreditResponseDto(transactionOptional.get());
+                return ResponseEntity.ok(dto);
+            }
+        }
+        Card card = cardUtil.checkCardExistence(cardId);
+        Transaction transaction = addToBalance(card, creditDTO);
+        idempotencyRecordRepository.save(new IdempotencyRecord(idempotencyKey, cardId, transaction.getId()));
+        return ResponseEntity.ok(transactionMapper.toCreditResponseDto(transaction));
+    }
+
+    private Transaction addToBalance(Card card, CreditRequestDTO creditDTO) {
+        checkCardStatus(card);
+        long sum = creditDTO.amount();
+        Long exchangeRate = null;
+        if (!creditDTO.currency().equals(card.getCurrency())) {
+            exchangeRate = cardUtil.fetchCurrencyRate();
+            sum = creditDTO.currency().equals(Currency.USD) ? creditDTO.amount() * exchangeRate : creditDTO.amount() / exchangeRate;
+        }
+        long newBalance = card.getBalance() + sum;
+        card.setBalance(newBalance);
+        cardRepository.save(card);
+        return transactionService.saveCreditTransaction(creditDTO, newBalance, card, exchangeRate);
+    }
+
+    public Transaction checkBalanceAndWithdraw(Card card, DebitRequestDTO debitDTO) {
+        checkCardStatus(card);
         // Checks if two currency are same. Then, compares transaction amount and card balance.
-        if (transactionDto.currency().equals(card.getCurrency()) && card.getBalance() < transactionDto.amount()) {
+        if (debitDTO.currency().equals(card.getCurrency()) && card.getBalance() < debitDTO.amount()) {
             throw new BadRequestException("Insufficient funds.");
         }
         // Checks if currency of card or transaction is different. If yes, then checks the amount.
-        if (!transactionDto.currency().equals(card.getCurrency())) {
+        if (!debitDTO.currency().equals(card.getCurrency())) {
             long currencyRate = cardUtil.fetchCurrencyRate();
             // Checks the card if it has enough money
-            long amountInCardCurrency = cardUtil.checkBalanceWithCurrencyRate(card, transactionDto, currencyRate);
+            long amountInCardCurrency = cardUtil.sumWithCurrencyRate(card, debitDTO, currencyRate);
 
             long newBalance = card.getBalance() - amountInCardCurrency;
             card.setBalance(newBalance);
             cardRepository.save(card);
-            return transactionService.saveTransaction(transactionDto, newBalance, card, currencyRate);
+            return transactionService.saveDebitTransaction(debitDTO, newBalance, card, currencyRate);
         }
         // Two currencies are same and sum of transaction is withdrawn from card balance.
-        card.setBalance(card.getBalance() - transactionDto.amount());
+        long newBalance = card.getBalance() - debitDTO.amount();
+        card.setBalance(newBalance);
         cardRepository.save(card);
-        return transactionService.saveTransaction(transactionDto, card.getBalance(), card, null);
+        return transactionService.saveDebitTransaction(debitDTO, newBalance, card, null);
+    }
+
+    // Checks if card status is ACTIVE for income or outcome
+    public void checkCardStatus(Card card) {
+        if (!card.getStatus().equals(CardStatus.ACTIVE)) {
+            throw new BadRequestException("Card is not active.");
+        }
     }
 
     private Card checkEtag(String eTag, UUID cardId) {
