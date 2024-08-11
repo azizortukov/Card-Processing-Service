@@ -28,7 +28,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-
 public class CardServiceImpl implements CardService {
 
     private final CardRepository cardRepository;
@@ -50,7 +49,7 @@ public class CardServiceImpl implements CardService {
                     .body(cardResponseMapper.toDto(card));
         }
 
-        if (cardRepository.findActiveCardsByUserId(cardDto.userId()).size() == 3) {
+        if (cardRepository.findActiveCardsByUserId(cardDto.userId()) == 3) {
             throw new BadRequestException("Card limit is exceeded above 3");
         }
         if (userRepository.findById(cardDto.userId()).isEmpty()) {

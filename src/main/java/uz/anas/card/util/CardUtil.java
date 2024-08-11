@@ -31,7 +31,6 @@ public class CardUtil {
     private final ObjectMapper objectMapper;
     private final CardRepository cardRepository;
 
-
     @Cacheable(value = "currencyRate")
     public long fetchCurrencyRate() {
         String url = "https://cbu.uz/uz/arkhiv-kursov-valyut/json/USD/";
